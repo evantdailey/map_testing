@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<!-- Works, can click on lines, video plays, marker moves, but original click marker stays in place -->
+<html>
+	<head>
+		<title>Leaflet with JSON</title>
+		<meta charset="utf-8">
+		<style>
+			html, body {
+			height: 94.4%;
+			width: 100%;
+			margin: 0;
+			padding: 0
+			}			
+			#mymap {
+				bottom:0px;
+				height: 100%;
+				left: 0px;
+				position: relative;
+				right: 0px;
+			}		
+			.vidPlayer {
+				padding: 6px 8px;
+				font: 14px/16px Arial, Helvetica, sans-serif;
+				background: white;
+				background: rgba(255,255,255,0.8);
+				box-shadow: 0 0 15px rgba(0,0,0,0.2);
+				border-radius: 5px;
+			}
+			.vidPlayer h4 {
+				text-alight: center;
+				margin: 0 0 5px;
+				color: #777;
+			}
+		</style>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"/>
+			
+		<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+		
+	</head>
+	
+	<body>
+
+		<div id="usgsheader"><style type="text/css">
+
+		/* ===OFFICIAL USGS STYLE SHEET===
+		This CSS has been approved by all applicable parties and is subject to change...with prior notice. This CSS is meant to provide a consistent look and feel across all USGS Web pages and can be used in conjunction with the custom.css file and any additional style sheets of your own.
+
+		DO NOT MODIFY THIS FILE IN ANY WAY.
+
+		You can customize some areas of the header ONLY by making the changes in the custom.css file. Refer to the custom.css file for specific instructions.
+		===END DISCLAIMER NOTICE===*/
+
+		/* ===STANDARD HEADER===*/
+
+		#usgsheader{
+			border:5px solid #fff;
+		}
+
+		#usgscolorband {
+			font: 14px Verdana, Arial, Helvetica, sans-serif;
+			width: 100%;
+			height: 5.14em;
+			background: #000 url(http://www.usgs.gov/images/headers/blue_black.jpg) right 0px no-repeat; 
+			min-height: 72px;
+		}
+		#usgsbanner {
+			width: 100%;
+			height: 72px;	
+		}
+		#usgsidentifier {
+			background-color: black;
+			width: 178px;
+			height: 5.14em;
+			float: left;
+		}
+		#usgsidentifier img {
+			border: none;
+		}
+		#usgscoop { 
+			padding-left: 18px; 
+			position: relative; 
+			float: left;
+			height: 5.14em; 
+			background-color: black;
+			min-height: 72px;   
+		} 
+		#usgscoop img {
+			margin-right: 3px;
+			border: none;
+		}
+		#usgstitle { 
+			background-color: #006633; 
+			clear: both; 
+			width: 100%; 
+			border-bottom: 1px solid #ffffff; 
+			border-top: 1px solid #ffffff; 
+			font: 14px Verdana, Arial, Helvetica, sans-serif; 
+			color: #ffffff; 
+			height: 29px;
+		} 
+		#usgstitle p { 
+			font: bold 1.2em Verdana, Arial, Helvetica, sans-serif; 
+			padding: 5px; 
+			margin: 0px; 
+			float: left;
+		} 
+		#usgstitle label {
+			font-size: small;
+			font-weight: bold;
+		}
+		#usgstitle form {
+			float: right;
+			padding: 5px;
+			margin: 0px;
+		}
+		#usgstitle form input {
+			margin: 0px;
+		}
+		#usgstitle #sa {
+			font-size: small !important;
+			font-size: x-small;
+		}
+		/* ===STANDARD CUSTOMER SERVICE AREA===*/
+		#usgsccsabox {
+			float: right;
+			background-color: #000000;
+			min-height: 72px;
+		}
+		#usgsccsa {
+			font:  1em/.5em Verdana, Arial, Helvetica, sans-serif;
+			height: 5.14em;
+			width: 10.5em;
+		}
+		#usgsccsa a:link, #usgsccsa a:visited { 
+			font: bold 1em/1.3em Verdana, Arial, Helvetica, sans-serif; 
+			color: #ffffff; 
+			margin-left: 4px; 
+			text-decoration: none; 
+		} 
+		#usgsccsa a:hover { 
+			font: bold 1em/1.3em Verdana, Arial, Helvetica, sans-serif; 
+			color: #ffffff; 
+			text-decoration: underline; 
+			margin-left: 4px; 
+		} 
+		#usgsccsa a:active { 
+			font: bold 1em/1.3em Verdana, Arial, Helvetica, sans-serif; 
+			color: #ffffff; 
+			margin-left: 4px; 
+			text-decoration: none; 
+		}
+
+
+		/* ===STANDARD FOOTER===*/
+		#usgsfooter {
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: small;
+			clear: both;
+			margin: 0;
+			text-align:left;
+		}
+		#usgsfooterbar {
+			background-color: #666666;
+			padding: 4px;
+			margin: 0;
+		}
+		#usgsfooterbar a:link, #usgsfooterbar a:visited {
+			margin-right: 40px;
+			color: #ffffff;
+			text-decoration: none;
+		}
+		#usgsfooterbar a:hover {
+			margin-right: 40px;
+			color: #ffffff;
+			text-decoration: underline;
+		}
+		#usgsfooterbar a:active {
+			margin-right: 40px;
+			color: #ffffff;
+			text-decoration: none;
+		}
+		#usgsfootertext {
+			padding: 4px;
+			margin: 0;
+		}
+		#usgsfootertext img {
+			border: none;
+			float: right;
+			margin-right: 5px;
+		}
+		/*===PRINT STYLES FOR TEMPLATE===*/
+		@media print {
+				 #usgsccsabox, #usgsfooterbar, #usgsfootertext img {
+						 display:none;
+				 }
+				 #usgstitle { margin-bottom:15px; }
+				 #usgsfooter { padding-top:15px; }
+				 #usgsheader, #usgsbanner, #usgstitle p, #usgsfootertext {
+						 padding:0;
+						 margin:0;
+						 color:#000000;
+						 background:#ffffff;
+				 }
+		}
+		/*===END PRINT STYLES FOR TEMPLATE===*/
+
+		</style>
+
+		<!-- BEGIN USGS Header Template -->
+		<div id="usgscolorband">
+			<div id="usgsbanner">
+				<div id="usgsidentifier"><a href="http://www.usgs.gov/"><img src="http://www.usgs.gov/images/header_graphic_usgsIdentifier_white.jpg" alt="USGS - science for a changing world" title="U.S. Geological Survey Home Page" width="178" height="72"></a></div>
+				<div id="usgsccsabox">
+					<div id="usgsccsa">
+					  <br><a href="http://www.usgs.gov/">USGS Home</a>
+					  <br><a href="http://www.usgs.gov/ask/">Contact USGS</a>
+					  <br><a href="http://search.usgs.gov/">Search USGS</a>
+					  <br>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="usgstitle">
+			<!-- <p><a href="#" style="color:#fff;text-decoration:none;">California Seafloor Mapping Program Video and Photograph Portal</a></p> -->
+			<!-- Coastal and Marine Geology Video and Photograph Portal -->
+			<p><a href="#" style="color:#fff;text-decoration:none;">Coastal and Marine Geology Program</a></p>
+			
+		</div>
+		<!-- END USGS Header Template --></div>
+		
+		
+		
+		<div id="mymap" style="height: 100%; width: 100%;"></id>
+		</div>
+		<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.2.0/leaflet-omnivore.min.js'></script>
+		<script src="http://rawgithub.com/openplans/Leaflet.AnimatedMarker/master/src/AnimatedMarker.js"></script>
+		
+		<script type="text/javascript" src="D:/Scripts/DaileyScripts/javascript/js/geojson.min.js"></script>
+		<script src="D:/Scripts/DaileyScripts/javascript/js/jQuery.js"></script>
+		<script type="text/javascript">
+		
+			// Load the IFrame Player API code asynchronously.
+			var tag = document.createElement('script');
+			tag.src = "https://www.youtube.com/player_api";
+			var firstScriptTag = document.getElementsByTagName('script')[0];
+			firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+			
+			var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+				maxZoom: 18,
+				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+			});
+			
+			var road_map = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+				maxZoom: 18,
+				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+					'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+					'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+				id: 'mapbox.streets'
+			});
+			
+			var mymap = L.map('mymap', {layers: [Esri_WorldImagery]}).setView([34.01, -120.27], 13);
+			
+			var baseLayers = {
+				"World Imagery": Esri_WorldImagery,
+				"Streets": road_map
+			};
+			
+			L.control.layers(baseLayers).addTo(mymap);			
+			
+			jQuery.extend({
+				getValues: function(url) {
+					var result = null;
+					$.ajax({
+						type: "GET",
+						url: url,
+						dataType: "JSON",
+						async: false,
+						success: function(data) {
+							result = data;
+						}
+					});
+					return result;
+				}
+			});
+
+			var dat = $.getValues("https://raw.githubusercontent.com/evantdailey/map_testing/master/site1.json");
+			
+			var geoj = GeoJSON.parse(dat, {Point: ['lat', 'lon']});
+			
+			var style = {
+				radius: 1.75,
+				fillColor: "darkred",
+				color: "darkred",
+			};
+			
+			var markerIcon = L.icon({
+				iconUrl: 'https://raw.githubusercontent.com/evantdailey/map_testing/master/dot3a_tnsp.png',
+				iconSize: [18,18],
+			});
+			
+			var playerIcon = L.icon({
+				iconUrl: 'https://raw.githubusercontent.com/evantdailey/map_testing/master/dot2_tnsp.png',
+				iconSize: [11,11],
+			});
+			
+			// Variables used in functions below:
+			var marker, YT_id, vidSec, lat, lng, player, vidPopup, playbackSeconds, timer; 
+			
+			var vidPlayer = L.control({position: 'bottomleft'});
+			vidPlayer.onAdd = function(mymap) {
+				this._div = L.DomUtil.create('div', 'vidPlayer');
+				this._div.id = "player";
+				this._div.innerHTML = '<h4>USGS CMG Video</h4>'
+				this.update();
+				return this._div;
+			};
+				
+			vidPlayer.update = function (player) {
+				this._div.innerHTML = '<h4>USGS CMG Video</h4>' + (player ? '<b>' + player + '</b><br />' : 'Select a video');
+			};
+			vidPlayer.addTo(mymap);
+			
+			function onEachFeature(feature, layer) {
+				layer.on('click', function(e) {
+					YT_id = feature.properties.youtube_id;
+					vidSec = feature.properties.video_second;
+					lat = feature.geometry.coordinates[1];
+					lng = feature.geometry.coordinates[0];
+					var marker;
+					mymap.on('click', function (e) {
+						if (marker) {
+							mymap.removeLayer(marker);
+							document.getElementById("player").remove();
+							player = undefined;							
+							var vidPlayer = L.control({position: 'bottomleft'});
+							vidPlayer.onAdd = function(mymap) {
+								this._div = L.DomUtil.create('div', 'vidPlayer');
+								this._div.id = "player";
+								this._div.innerHTML = '<h4>USGS CMG Video</h4>'
+								this.update();
+								return this._div;
+							};
+								
+							vidPlayer.update = function (player) {
+								this._div.innerHTML = '<h4>USGS CMG Video</h4>' + (player ? '<b>' + player + '</b><br />' : 'Select a video');
+							};
+							vidPlayer.addTo(mymap);
+						} else {
+							marker = new L.Marker([lat,lng], {icon: markerIcon}).addTo(mymap);
+							player = new YT.Player('player', {
+								height: '236.25',
+								width: '420',
+								videoId: YT_id,
+								playerVars: {
+									autoplay: 0,
+									start: vidSec,
+									rel: 0,
+								},
+								events: {
+									'onReady': onPlayerReady,
+									'onStateChange': onPlayerStateChange
+								}
+							});
+							console.log(marker, player);
+						}
+						console.log(marker);
+						return marker
+					});
+					vidPlayer.update(player);
+				});
+			}
+			
+			function onPlayerReady(event) {
+				event.target.playVideo();
+			}
+				
+			function onPlayerStateChange(event) {
+				try {
+					if(event.data === 1) {
+						timer = setInterval(getPlaybackTime, 1000);
+					} else {
+						clearInterval(timer);
+					}
+				} catch(err) {
+					clearInterval(timer)
+				}
+			}
+			
+			function getPlaybackTime() {
+				try {
+					playbackSeconds = player.getCurrentTime();
+					for (var i = 0; i < geoj.features.length; i++) {
+						if(geoj.features[i].properties.youtube_id === YT_id && geoj.features[i].properties.video_second === Math.round(playbackSeconds)) {
+							lat = geoj.features[i].geometry.coordinates[1];
+							lng = geoj.features[i].geometry.coordinates[0];
+							if (marker) {
+								marker.remove();
+								marker = new L.Marker([lat,lng], {icon: playerIcon}).addTo(mymap);
+							} else {
+							marker = new L.Marker([lat,lng], {icon: playerIcon}).addTo(mymap);
+							}
+						}
+					}
+				} catch(err) {
+					clearInterval(timer);
+					marker.remove()
+				}
+			}
+			
+			var polyline = L.geoJSON(geoj, {
+				onEachFeature: onEachFeature,
+				pointToLayer: function (feature, latlng) {
+					onEachFeature: onEachFeature;
+					return L.circleMarker(latlng, style);
+				}
+			}).addTo(mymap);
+			
+			mymap.fitBounds(polyline.getBounds());
+						
+		</script>
+	</body>
+</html>	
