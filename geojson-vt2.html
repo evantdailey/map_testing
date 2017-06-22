@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<!-- Video and photo viewers are working; can click between/around on lines and everything works correctly; got line symbolization to show photo points on higher pane -->
+<html>
+	<head>
+		<title>USGS CMG Video & Photo Portal</title>
+		<meta charset="utf-8">
+		<style>
+			html, body {
+			height: 94.4%;
+			width: 100%;
+			margin: 0;
+			padding: 0
+			}			
+			#map {
+				bottom:0px;
+				height: 100%;
+				left: 0px;
+				position: relative;
+				right: 0px;
+			}		
+			.vidPlayer {
+				padding: 6px 8px;
+				font: 14px/16px Arial, Helvetica, sans-serif;
+				background: white;
+				background: rgba(255,255,255,0.8);
+				box-shadow: 0 0 15px rgba(0,0,0,0.2);
+				border-radius: 5px;
+			}
+			.vidPlayer h4 {
+				text-align: center;
+				margin: 0 0 5px;
+				color: #777;
+			}
+			.picViewer {
+				padding: 6px 8px;
+				font: 14px/16px Arial, Helvetica, sans-serif;
+				background: white;
+				background: rgba(255,255,255,0.8);
+				box-shadow: 0 0 15px rgba(0,0,0,0.2);
+				border-radius: 5px;
+			}
+			.picViewer h4 {
+				text-align: center;
+				margin: 0 0 5px;
+				color: #777;
+			}
+			
+			
+			ul {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+
+			.container {
+				width: 1000%;
+				margin: auto;
+				min-width: 1100px;
+				max-width: 1300px;
+				position: relative;
+			}
+			.title {
+				font-size: 14px;
+				font-weight: 1000;
+				font-family: Arial, sans-serif;
+				color: #000;
+				padding: 2px 24px;
+				display: inline-block;
+				position: relative;
+				background-color: #fff;
+			}
+			.block__list h4 {
+				text-align: center;
+				margin: 0 0 5px;
+				color: #777;	
+			}
+			.block__list {
+				font: 14px/16px Arial, Helvetica, sans-serif;
+				padding: 6px 3px;
+				max-width: 250px;
+				margin-top: 0px;
+				margin-left: 0px;
+				background: rgba(255,255,255,0.8);
+				box-shadow: 0 0 15px rgba(0,0,0,0.2);
+				border-radius: 5px;
+			}
+			.block__list_words li {
+			  font-size: 14px/16px;
+			  font-weight: 300;
+			  font-family: Arial, sans-serif;
+			  background-color: rgba(255,255,255,0);
+			  padding: 1px 10px;
+			}
+
+		</style>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"/>
+			
+		<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+		<script src="https://unpkg.com/esri-leaflet@2.0.8"></script> 
+		
+		
+		<link rel="icon"
+			type = "image/ico"
+			href="https://raw.githubusercontent.com/usgs/earthquake-eventpages/master/test/favicon.ico"/>
+		
+	</head>
+	
+	<body>
+
+		<div id="map" style="height: 95%; width: 100%;"></id>
+		</div>
+		<!--<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-omnivore/v0.2.0/leaflet-omnivore.min.js'></script>-->
+		<!--<script src="http://rawgithub.com/openplans/Leaflet.AnimatedMarker/master/src/AnimatedMarker.js"></script>-->
+		
+		<script type="text/javascript" src="D:/Scripts/DaileyScripts/javascript/videoPortal/geojson.min.js"></script>
+		
+		<script type="text/javascript" src="D:/Scripts/DaileyScripts/javascript/videoPortal/js/jQuery.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		
+		<link rel="stylesheet" href="D:/Scripts/DaileyScripts/javascript/videoPortal/scripts/L.Control.ZoomBox.css" />
+		<script src="D:/Scripts/DaileyScripts/javascript/videoPortal/scripts/L.Control.ZoomBox.min.js"></script>
+		<!-- <script src="https://unpkg.com/leaflet.vectorgrid@1.2.0"></script> -->
+		<!-- <script src="https://unpkg.com/leaflet.vectorgrid@latest/dist/Leaflet.VectorGrid.bundled.js"></script> -->
+		<script src="D:\Scripts\DaileyScripts\javascript\videoPortal\leafletTests\Leaflet.VectorGrid.js"></script>
+		
+		<script src="D:/Scripts/DaileyScripts/javascript/geojson-vt/geojson-vt-master/geojson-vt-master/geojson-vt.js"></script>
+		<script src="http://d3js.org/d3.v3.min.js"></script>
+
+		<script type="text/javascript">
+			// Load the IFrame Player API code asynchronously.
+			var tag = document.createElement('script');
+			tag.src = "https://www.youtube.com/player_api";
+			var firstScriptTag = document.getElementsByTagName('script')[0];
+			firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+			
+			var ESRIOceanBaseMap = L.esri.basemapLayer("Oceans", {
+				maxZoom: 18,
+			});
+			
+			var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+				maxZoom: 18,
+				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+			});
+			
+			var road_map = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+				maxZoom: 25,
+				attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+					'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+					'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+				id: 'mapbox.streets'
+			});		
+			var map = L.map('map', {layers: [ESRIOceanBaseMap]}).setView([34.01, -120.27], 13);
+						var baseLayers = {
+				"Oceans": ESRIOceanBaseMap,
+				"World Imagery": Esri_WorldImagery,
+				"Streets": road_map
+			};
+			
+			L.control.layers(baseLayers).addTo(map);		
+			
+			jQuery.extend({
+				getValues: function(url) {
+					var result = null;
+					$.ajax({
+						type: "GET",
+						url: url,
+						dataType: "JSON",
+						async: false,
+						success: function(data) {
+							result = data;
+						}
+					});
+					return result;
+				}
+			});
+			
+			var style = {
+				radius: 1.75,
+				fillColor: "darkred",
+				color: "darkred",
+				pane: 'overlayPane'
+			};
+			
+			var picStyle = {
+				radius: 0.25,
+				fillColor: "blue",
+				color: "blue",
+				pane: 'shadowPane'
+			};
+			
+			/*var style = {
+				"clickable": true,
+				"color": "#00D",
+				"fillColor": "#00D",
+				"weight": 1.0,
+				"opacity": 0.3,
+				"fillOpacity": 0.2
+			};
+			var hoverStyle = {
+				"fillOpacity": 0.5
+			}; */
+							
+			//var dat1 = ("https://raw.githubusercontent.com/evantdailey/map_testing/master/map.geojson");
+			//dat2 = GeoJSON.parse($.getValues(dat1), {Point: ['lat', 'lon']});
+			
+			//var layer = L.vectorGrid.slicer(dat/*, { 
+			//	vectorTileLayerStyles: {
+			//		sliced: {
+			//			onEachFeature: onEachFeature
+			//		}
+			//	}
+			//}*/).addTo(map);
+			
+			var valuesSite1 = GeoJSON.parse($.getValues("https://raw.githubusercontent.com/evantdailey/map_testing/master/site1_wPics.json"), {Point: ['lat', 'lon']});
+			var site1 = new L.geoJSON(valuesSite1, {
+				onEachFeature: onEachFeature,
+				pointToLayer: function (feature, latlng) {
+					feature.properties.layer = "Site 1";
+					onEachFeature: onEachFeature;
+					if (feature.properties.picture != "NA" && feature.properties.picture != "") {
+						return L.circleMarker(latlng, picStyle)
+					} else {
+						return L.circleMarker(latlng, style);
+					}
+				}
+			});//.addTo(map);
+			
+			
+			d3.json(valuesSite1, function(collection) {
+				var bounds = d3.geo.bounds(collection);
+				
+				var path = d3.geo.path().projection(project);
+				
+				var feature = g.selectAll("path")
+						.data(collection.features)
+					.enter().append("path")
+						.attr('class','county');
+				
+				map.on("viewreset", reset);
+				
+				reset();
+				
+				function project(x) {
+					var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
+					return [point.x, point.y];
+				}
+				
+				function reset() {
+					var bottomLeft = project(bounds[0]); 
+					var topRight = project(bounds[1]);
+					svg.attr("width", topRight[0] - bottomLeft[0])
+						.attr("height", bottomLeft[1] - topRight[1])
+						.style("margin-left", bottomLeft[0] + "px")
+						.style("margin-top", topRight[1] + "px");
+					g.attr("transform", "translate(" + -bottomLeft[0] + "," + -topRight[1] + ")");
+					feature.attr("d", path);
+				}
+			});
+			
+			
+			// Variables used in functions below:
+			var marker, YT_id, vidSec, lat, lng, player, vidPopup, picHTML, playbackSeconds, timer, layr, photo; 			
+			
+			function onEachFeature(feature, layer) {
+				layer.on('click', function(e) {
+					layr = feature.properties.layer;
+					lat = feature.geometry.coordinates[1];
+					lng = feature.geometry.coordinates[0];
+					YT_id = feature.properties.youtube_id;
+					vidSec = feature.properties.video_second;
+					photo = feature.properties.picture;
+					if (photo != "NA" && photo != "") {
+						picHTML = '<a href=' + photo + ' target=\"_blank"><img src=\"' + photo + '\" width="420"></a>';
+						picViewer.update(picHTML);
+					} else {
+						picHTML = 'No photo at this location. <br /> A photo will automatically load when available.'
+					}
+					var marker;
+					map.on('click', function (e) {
+						if (marker) {
+							map.removeLayer(marker);
+							
+							document.getElementById("player").remove();
+							player = undefined;
+							var vidPlayer = L.control({position: 'bottomleft'});
+							vidPlayer.onAdd = function(map) {
+								this._div = L.DomUtil.create('div', 'vidPlayer');
+								this._div.id = "player";
+								this._div.innerHTML = '<h4>USGS CMG Video</h4>'
+								this.update();
+								return this._div;
+							}
+							vidPlayer.update = function (player) {
+								this._div.innerHTML = '<h4>USGS CMG Video</h4>' + (player ? + player + '<br />' : 'Select a video');
+							}
+							vidPlayer.addTo(map);
+							
+							document.getElementById("picture").remove();							
+							picViewer = undefined;
+							picViewer = L.control({position:"bottomleft"});
+							picViewer.onAdd = function(map) {
+								this._div = L.DomUtil.create('div', 'picViewer');
+								this._div.id = "picture";
+								this._div.innerHTML = '<h4>USGS CMG Photo</h4>';
+								this.update();
+								return this._div;
+							}
+							picViewer.update = function(picHTML) {
+								this._div.innerHTML = '<h4>USGS CMG Photo</h4>' + (picHTML ? picHTML + '<br />' : 'Select a photo');
+							}
+							picViewer.addTo(map);
+							picViewer.update(picHTML);
+							
+						} else {
+							marker = new L.Marker([lat,lng], {icon: markerIcon}).addTo(map);
+							player = new YT.Player('player', {
+								height: '236.25',
+								width: '420',
+								videoId: YT_id,
+								playerVars: {
+									autoplay: 0,
+									start: vidSec,
+									rel: 0,
+								},
+								events: {
+									'onReady': onPlayerReady,
+									'onStateChange': onPlayerStateChange
+								}
+							});
+						}
+						return marker
+					});
+					vidPlayer.update(player);
+					picViewer.update(picHTML);
+				});
+			}
+	
+		
+				
+		</script>
+	</body>
+</html>	
